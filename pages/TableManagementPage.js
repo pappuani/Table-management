@@ -58,19 +58,21 @@ class TableManagementPage {
 
   async login(email = process.env.OWNER_EMAIL || 'anicafeqr@gmail.com', password = process.env.OWNER_PASSWORD || '123456') {
     await this.page.goto('/login');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
 
-    if (await this.emailInput.isVisible()) {
+    if (await this.emailInput.isVisible({ timeout: 5000 }).catch(() => false)) {
       await this.emailInput.fill(email);
       await this.passwordInput.fill(password);
       await this.loginButton.click();
+      await this.page.waitForURL(/owner/, { timeout: 15000 }).catch(() => {});
       await this.page.waitForLoadState('networkidle');
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForTimeout(1000);
     }
   }
 
   async navigateToTableManagement() {
     await this.page.goto('/owner/table-management');
+    await this.page.waitForURL(/.*\/owner\/table-management/, { timeout: 15000 }).catch(() => {});
     await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(1000);
   }

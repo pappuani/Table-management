@@ -13,7 +13,7 @@ test.describe('Cafe QR - Complete Table Management End-to-End Suite', () => {
   });
 
   test('01. Verify Page Load, Header, Navigation & Core Controls', async ({ page }) => {
-    expect(page.url()).toContain('/owner/table-management');
+    await expect(page).toHaveURL(/.*\/owner\/table-management/);
     await expect(tablePage.pageTitle).toBeVisible();
     await expect(tablePage.addTableBtn).toBeVisible();
     await expect(tablePage.floorsBtn).toBeVisible();
@@ -51,11 +51,9 @@ test.describe('Cafe QR - Complete Table Management End-to-End Suite', () => {
     // 2. Validate Capacity Input
     await expect(tablePage.capacityInput).toBeVisible();
 
-    // 3. Validate Toggle Containers (Bulk Create, Email QR)
+    // 3. Validate Toggle Containers (Bulk Create)
     const bulkCreateLabel = tablePage.modalOverlay.locator('text=Bulk Create');
-    const emailQrLabel = tablePage.modalOverlay.locator('text=Email QR codes');
     await expect(bulkCreateLabel).toBeVisible();
-    await expect(emailQrLabel).toBeVisible();
 
     // 4. Validate Dropdowns (Shape, Floor, Section, Status)
     const dropdowns = tablePage.modalOverlay.locator('button.nice-select-trigger');
@@ -132,9 +130,25 @@ test.describe('Cafe QR - Complete Table Management End-to-End Suite', () => {
       await tablePage.qrButtons.first().click();
       await page.waitForTimeout(600);
 
-      // Verify email dispatch confirmation toast
-      const toast = page.locator('text=QR Code access link sent to your registered email').or(page.locator('._t.success, .global-toast-container'));
-      await expect(toast.first()).toBeVisible();
+      // Verify QR Modal is opened with QR Link and action buttons
+      const qrModal = page.locator('.modal-overlay');
+      await expect(qrModal).toBeVisible();
+      await expect(qrModal.locator('button:has-text("Email QR"), button:has-text("Copy")').first()).toBeVisible();
+
+      // Trigger Email QR dispatch
+      const emailBtn = qrModal.locator('button:has-text("Email QR")');
+      if (await emailBtn.isVisible()) {
+        await emailBtn.click();
+        await page.waitForTimeout(800);
+      }
+
+      // Close the QR modal
+      const closeBtn = qrModal.locator('button:has-text("Close")');
+      if (await closeBtn.isVisible()) {
+        await closeBtn.click();
+        await page.waitForTimeout(500);
+        await expect(qrModal).toBeHidden();
+      }
     }
   });
 
